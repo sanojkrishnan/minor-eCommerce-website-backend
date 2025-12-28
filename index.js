@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 require("dotenv").config({ path: "./.env" });
 const { Item, Cart } = require("./models");
 const cors = require("cors");
+const upload = require("./imageHandler");
 
 const App = express();
 
@@ -157,6 +158,45 @@ App.delete("/cart/:id", async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+
+App.post("/add-product", upload.single("image"), async (req, res) => {
+  try {
+    const {
+      productName,
+      category,
+      rating,
+      price,
+      offerPrice,
+      offerPercentage,
+    } = req.body;
+
+    console.log("add-product payload:", req.body, req.file);
+
+    const imageUrl = req.file
+      ? `/itemImage/${req.file.filename}`
+      : null;
+
+    const product = await Item.create({
+      productName,
+      category,
+      rating,
+      price,
+      offerPrice,
+      offerPercentage,
+      imageUrl: imageUrl,
+    });
+
+    res.status(201).json({
+      message: "Product added successfully",
+      product,
+    });
+  } catch (error) {
+    console.error("Error adding product:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 
 // Start the server
 App.listen(process.env.PORT || 3000, () => {
