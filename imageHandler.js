@@ -1,19 +1,15 @@
-// Set up Multer for handling image uploads
 const multer = require("multer");
 const path = require("path");
 
-// Configure Multer storage location and filename
 const imageStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "/itemImage")); // Folder where images are saved
+    cb(null, path.join(process.cwd(), "itemImage"));
   },
   filename: (req, file, cb) => {
-    const name = Date.now() + "-" + file.originalname; // Unique filename
-    cb(null, name);
+    cb(null, Date.now() + "-" + file.originalname);
   }
 });
 
-const upload = multer({ storage: imageStorage }); // Use the storage config
+const upload = multer({ storage: imageStorage });
 
-
-module.exports = upload
+module.exports = upload;
