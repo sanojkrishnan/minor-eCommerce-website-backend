@@ -18,24 +18,17 @@ App.use(cors());
 // Parse JSON bodies for POST/PUT requests
 App.use(express.json());
 
-App.use(
-  "/itemImage",
-  express.static(path.join(process.cwd(), "itemImage"))
-);
+App.use("/itemImage", express.static(path.join(process.cwd(), "itemImage")));
 
-
-// Server endpoint
 App.get("/", async (req, res) => {
   try {
     const items = await Item.find(); // Fetch all items from the database
     res.json(items); // Send the items as a JSON response
-    console.log(items)
   } catch (error) {
     console.error("Error fetching items:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 App.get("/cart", async (req, res) => {
   try {
     const carts = await Cart.find();
@@ -167,7 +160,6 @@ App.delete("/cart/:id", async (req, res) => {
   }
 });
 
-
 App.post("/add-product", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -181,9 +173,7 @@ App.post("/add-product", upload.single("image"), async (req, res) => {
 
     console.log("add-product payload:", req.body, req.file);
 
-    const imageUrl = req.file
-      ? `itemImage/${req.file.filename}`
-      : null;
+    const imageUrl = req.file ? `itemImage/${req.file.filename}` : null;
 
     const product = await Item.create({
       productName,
@@ -204,7 +194,6 @@ App.post("/add-product", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
-
 
 // Start the server
 App.listen(process.env.PORT || 3000, () => {
