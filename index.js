@@ -22,13 +22,61 @@ App.use("/itemImage", express.static(path.join(process.cwd(), "itemImage")));
 
 App.get("/", async (req, res) => {
   try {
-    const items = await Item.find(); // Fetch all items from the database
-    res.json(items); // Send the items as a JSON response
+    let {
+      search = "",
+      lowerPrice = 0,
+      higherPrice = 0,
+      sortBy = "name",
+    } = req.query;
+
+    let category = req.query.category || req.query["category[]"];
+    if (typeof category === "string") category = [category];
+
+    lowerPrice = Number(lowerPrice);
+    higherPrice = Number(higherPrice);
+
+    const filter = {};
+
+    //  Search
+    if (search.trim()) {
+      filter.$or = [
+        { productName: { $regex: search.trim(), $options: "i" } },
+        { category: { $regex: search.trim(), $options: "i" } },
+      ];
+    }
+
+    //  Category
+    if (category && !category.includes("all")) {
+      filter.category = { $in: category };
+    }
+
+    //  Sorting
+    let sort = {};
+    if (sortBy === "ascending") sort.offerPrice = 1;
+    else if (sortBy === "descending") sort.offerPrice = -1;
+    else sort.productName = 1;
+
+    const items = await Item.find(filter).sort(sort);
+
+    //  Price filter
+    if (lowerPrice > 0 || higherPrice > lowerPrice) {
+      const priceItem = items.filter(
+        (item) =>
+          item.offerPrice >= lowerPrice && item.offerPrice <= higherPrice,
+      );
+      return res.json(priceItem);
+    }else if(lowerPrice === 0, higherPrice === 0){
+      return res.json(items)
+    }
+     else {
+      res.status(400).json({ message: "error" });
+    }
   } catch (error) {
-    console.error("Error fetching items:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
 App.get("/cart", async (req, res) => {
   try {
     const carts = await Cart.find();
@@ -108,7 +156,7 @@ App.patch("/cart-item/:id/increment", async (req, res) => {
     const cartItem = await Cart.findByIdAndUpdate(
       req.params.id,
       { $inc: { quantity: 1 } },
-      { new: true }
+      { new: true },
     );
 
     if (!cartItem) {
@@ -126,7 +174,7 @@ App.patch("/cart-item/:id/decrement", async (req, res) => {
     const cartItem = await Cart.findByIdAndUpdate(
       req.params.id,
       { $inc: { quantity: -1 } },
-      { new: true }
+      { new: true },
     );
 
     if (!cartItem) {
