@@ -95,18 +95,18 @@ App.post("/add-to-cart", async (req, res) => {
     let qty = parseInt(quantity, 10);
     if (isNaN(qty) || qty <= 0) qty = 1;
 
-    // 1️⃣ Validation
+    //  Validation
     if (!itemId) {
       return res.status(400).json({ message: "itemId is required" });
     }
 
-    // 2️⃣ Check item exists
+    //  Check item exists
     const item = await Item.findById(itemId);
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    // 3️⃣ Check if item already in cart
+    //  Check if item already in cart
     const cartItem = await Cart.findOne({ itemId });
 
     if (cartItem) {
@@ -119,7 +119,7 @@ App.post("/add-to-cart", async (req, res) => {
       });
     }
 
-    // 4️⃣ Create new cart item
+    //  Create new cart item
     const newCartItem = new Cart({
       itemId,
       quantity: qty,
